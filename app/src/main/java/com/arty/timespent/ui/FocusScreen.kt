@@ -3,7 +3,9 @@ package com.arty.timespent.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,32 +23,39 @@ fun FocusScreen(viewModel: TimerViewModel) {
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceAround
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("Текущий вайб:", fontSize = 18.sp)
-        Text(intensity.label, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+        Text("ФОКУС", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
-        // Отображение времени (минуты:секунды)
+        // Таймер
+        val mins = seconds / 60
+        val secs = seconds % 60
         Text(
-            text = String.format("%02d:%02d", seconds / 60, seconds % 60),
+            text = String.format("%02d:%02d", mins, secs),
             fontSize = 80.sp,
-            fontWeight = FontWeight.Thin
+            fontWeight = FontWeight.Black
         )
 
-        // Кнопки переключения вайба
+        // Переключатель интенсивности
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IntensityButton("Флексим", isSelected = intensity == Intensity.FLEX) {
-                viewModel.setIntensity(Intensity.FLEX)
-            }
-            IntensityButton("Берсерк", isSelected = intensity == Intensity.BERSERK) {
-                viewModel.setIntensity(Intensity.BERSERK)
-            }
+            IntensityButton(
+                text = "ФЛЕКСИМ",
+                isSelected = intensity == Intensity.FLEX,
+                onClick = { viewModel.setIntensity(Intensity.FLEX) }
+            )
+            IntensityButton(
+                text = "БЕРСЕРК",
+                isSelected = intensity == Intensity.BERSERK,
+                onClick = { viewModel.setIntensity(Intensity.BERSERK) }
+            )
         }
 
+        // Кнопка СТОП
         Button(
             onClick = {
                 viewModel.stopTimer()
-                viewModel.showSummary() // Показываем итоги
+                viewModel.saveSession() // Сначала сохраняем данные в базу
+                viewModel.showSummary() // Потом переключаем экран
             },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8DE47C)),
@@ -60,10 +69,11 @@ fun FocusScreen(viewModel: TimerViewModel) {
 @Composable
 fun IntensityButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Button(
-        onClick = onClick, // Она просто выполняет это действие
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isSelected) Color(0xFF8DE47C) else Color.LightGray
-        )
+        ),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Text(text, color = Color.Black)
     }
